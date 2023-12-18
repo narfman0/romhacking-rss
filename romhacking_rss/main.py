@@ -4,7 +4,7 @@ import hashlib
 
 from bs4 import BeautifulSoup
 from flask import Flask, request
-from werkzeug.contrib.atom import AtomFeed
+from rfeed import Feed, Guid, Item
 import requests
 
 BASE_URL = "https://www.romhacking.net"
@@ -22,8 +22,8 @@ def home():
 def generate_response(html):
     soup = BeautifulSoup(html, "html.parser")
     title = soup.title.string
-    subtitle = "Result as of {date}".format(date=datetime.now())
-    feed = AtomFeed(title, feed_url="/", url="/", subtitle=subtitle)
+    description = "Result as of {date}".format(date=datetime.now())
+    items = []
     for row in soup.find("tbody").find_all("tr"):
         title_soup = row.find(class_="Title")
         title = title_soup.string
@@ -31,17 +31,17 @@ def generate_response(html):
         author = row.find(class_="col_2").string
         date_string = row.find(class_="col_9").string
         date = datetime.strptime(date_string, "%d %b %Y")
-        feed.add(
-            title,
-            "",
-            content_type="html",
-            author=author,
-            url=url,
-            id=id_from_romhack(title, date),
-            published=date,
-            updated=date,
+        items.append(
+            Item(
+                title=title,
+                link=url,
+                description="",
+                author=author,
+                guid=Guid(id_from_romhack(title, date)),
+                pubDate=date,
+            )
         )
-    return feed.get_response()
+    return Feed(title=title, link="/", items=items, description=description).rss()
 
 
 def id_from_romhack(title, date):
@@ -53,5 +53,5 @@ def id_from_romhack(title, date):
     # and the least significant a chopped hash of the game name.
     title_prefix = int(date.strftime("%Y%m%d"))
     title_sha1 = hashlib.sha1(title.encode("utf-8")).hexdigest()
-    title_suffix = int(title_sha1, 16) % (10 ** 8)
+    title_suffix = int(title_sha1, 16) % (10**8)
     return str(title_prefix) + str(title_suffix)

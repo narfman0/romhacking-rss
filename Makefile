@@ -59,6 +59,9 @@ docker-push: docker
 lint: ## check style with flake8
 	flake8 romhacking_rss tests
 
+run:
+	flask run
+
 test: ## run tests quickly with the default Python
 	python setup.py test
 

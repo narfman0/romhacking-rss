@@ -21,7 +21,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     zip_safe=True,
-    install_requires=["beautifulsoup4", "Werkzeug==0.16.0", "flask", "requests"],
+    install_requires=["beautifulsoup4", "flask", "rfeed", "requests"],
     tests_require=["tox", "coverage", "flake8", "wheel"],
     test_suite="tests",
     entry_points={
