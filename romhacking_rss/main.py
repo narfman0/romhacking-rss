@@ -16,15 +16,23 @@ app = Flask(__name__)
 @app.route("/")
 def home():
     response = requests.get(BASE_URL, params=request.args)
+    if not response.ok:
+        raise Exception("Response failed", response.reason)
     return generate_response(response.text)
 
 
 def generate_response(html):
     soup = BeautifulSoup(html, "html.parser")
-    title = soup.title.string
+    if soup.title:
+        title = soup.title.string
+    else:
+        title = "Unknown title"
     description = "Result as of {date}".format(date=datetime.now())
+    table_body = soup.find("tbody")
+    if not table_body:
+        raise Exception("Failed to find items for search criteria")
     items = []
-    for row in soup.find("tbody").find_all("tr"):
+    for row in table_body.find_all("tr"):
         title_soup = row.find(class_="Title")
         title = title_soup.string
         url = BASE_URL + title_soup.a["href"]
