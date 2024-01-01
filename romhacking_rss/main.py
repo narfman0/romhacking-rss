@@ -15,7 +15,10 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    response = requests.get(BASE_URL, params=request.args)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.5412.99 Safari/537.36"
+    }
+    response = requests.get(BASE_URL, params=request.args, headers=headers)
     if not response.ok:
         raise Exception("Response failed", response.reason)
     return generate_response(response.text)
