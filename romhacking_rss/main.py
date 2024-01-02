@@ -3,7 +3,7 @@ from datetime import datetime
 import hashlib
 
 from bs4 import BeautifulSoup
-from flask import Flask, request
+from flask import Flask, Response, request
 from rfeed import Feed, Guid, Item
 import requests
 
@@ -18,18 +18,18 @@ def home():
     headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.5412.99 Safari/537.36"
     }
-    response = requests.get(BASE_URL, params=request.args, headers=headers)
-    if not response.ok:
-        raise Exception("Response failed", response.reason)
-    return generate_response(response.text)
+    rh_response = requests.get(BASE_URL, params=request.args, headers=headers)
+    if not rh_response.ok:
+        raise Exception("Response failed", rh_response.reason)
+    return Response(generate_response(rh_response.text), mimetype="application/rss+xml")
 
 
 def generate_response(html):
     soup = BeautifulSoup(html, "html.parser")
     if soup.title:
-        title = soup.title.string
+        feed_title = soup.title.string
     else:
-        title = "Unknown title"
+        feed_title = "Romhacking feed"
     description = "Result as of {date}".format(date=datetime.now())
     table_body = soup.find("tbody")
     if not table_body:
@@ -52,7 +52,7 @@ def generate_response(html):
                 pubDate=date,
             )
         )
-    return Feed(title=title, link="/", items=items, description=description).rss()
+    return Feed(title=feed_title, link="/", items=items, description=description).rss()
 
 
 def id_from_romhack(title, date):
