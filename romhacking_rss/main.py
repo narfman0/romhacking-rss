@@ -8,17 +8,18 @@ from rfeed import Feed, Guid, Item
 import requests
 
 BASE_URL = "https://www.romhacking.net"
-
+USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.5412.99 Safari/537.36"
 
 app = Flask(__name__)
 
 
 @app.route("/")
 def home():
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.5412.99 Safari/537.36"
-    }
-    rh_response = requests.get(BASE_URL, params=request.args, headers=headers)
+    if not request.args:
+        return "OK"
+    rh_response = requests.get(
+        BASE_URL, params=request.args, headers={"User-Agent": USER_AGENT}
+    )
     if not rh_response.ok:
         raise Exception("Response failed", rh_response.reason)
     return Response(generate_response(rh_response.text), mimetype="application/rss+xml")
